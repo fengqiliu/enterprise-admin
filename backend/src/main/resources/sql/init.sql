@@ -231,3 +231,27 @@ INSERT INTO `sys_dict_item` (`item_id`, `dict_id`, `item_label`, `item_value`, `
 (3, 1, '未知', '2', 3, 1),
 (4, 2, '禁用', '0', 1, 1),
 (5, 2, '启用', '1', 2, 1);
+
+-- ============================================
+-- 报表表
+-- ============================================
+DROP TABLE IF EXISTS `sys_report`;
+CREATE TABLE `sys_report` (
+    `report_id` BIGINT NOT NULL COMMENT '报表 ID',
+    `report_name` VARCHAR(100) NOT NULL COMMENT '报表名称',
+    `report_type` VARCHAR(50) NOT NULL COMMENT '报表类型',
+    `description` VARCHAR(255) DEFAULT NULL COMMENT '报表描述',
+    `start_date` VARCHAR(20) DEFAULT NULL COMMENT '开始日期',
+    `end_date` VARCHAR(20) DEFAULT NULL COMMENT '结束日期',
+    `params` TEXT DEFAULT NULL COMMENT '报表参数',
+    `file_path` VARCHAR(500) DEFAULT NULL COMMENT '文件路径',
+    `file_size` BIGINT DEFAULT NULL COMMENT '文件大小',
+    `status` INT DEFAULT 0 COMMENT '状态：0-待生成 1-生成中 2-已完成 3-失败',
+    `download_count` INT DEFAULT 0 COMMENT '下载次数',
+    `create_by` BIGINT DEFAULT NULL COMMENT '创建人 ID',
+    `create_name` VARCHAR(50) DEFAULT NULL COMMENT '创建人姓名',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `remark` TEXT DEFAULT NULL COMMENT '备注',
+    PRIMARY KEY (`report_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='报表表';

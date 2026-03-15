@@ -212,3 +212,27 @@ INSERT INTO sys_dict_item (item_id, dict_id, item_label, item_value, sort_order,
 INSERT INTO sys_dict_item (item_id, dict_id, item_label, item_value, sort_order, status, create_time, update_time, deleted) VALUES (3, 1, '未知', '2', 3, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0);
 INSERT INTO sys_dict_item (item_id, dict_id, item_label, item_value, sort_order, status, create_time, update_time, deleted) VALUES (4, 2, '禁用', '0', 1, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0);
 INSERT INTO sys_dict_item (item_id, dict_id, item_label, item_value, sort_order, status, create_time, update_time, deleted) VALUES (5, 2, '启用', '1', 2, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0);
+
+-- ============================================
+-- 报表表
+-- ============================================
+DROP TABLE IF EXISTS sys_report;
+
+CREATE TABLE sys_report (
+    report_id INTEGER PRIMARY KEY,
+    report_name VARCHAR(100) NOT NULL,
+    report_type VARCHAR(50) NOT NULL,
+    description VARCHAR(255) DEFAULT NULL,
+    start_date VARCHAR(20) DEFAULT NULL,
+    end_date VARCHAR(20) DEFAULT NULL,
+    params TEXT DEFAULT NULL,
+    file_path VARCHAR(500) DEFAULT NULL,
+    file_size INTEGER DEFAULT NULL,
+    status INTEGER DEFAULT 0,
+    download_count INTEGER DEFAULT 0,
+    create_by INTEGER DEFAULT NULL,
+    create_name VARCHAR(50) DEFAULT NULL,
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    remark TEXT DEFAULT NULL
+);

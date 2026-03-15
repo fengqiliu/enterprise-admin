@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -19,6 +19,14 @@ import {
   TableHead,
   TableRow,
   IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Snackbar,
+  Alert,
+  CircularProgress,
 } from '@mui/material';
 import {
   Download as DownloadIcon,
@@ -30,6 +38,8 @@ import {
   Assignment as AssignmentIcon,
   AttachMoney as MoneyIcon,
   ShoppingCart as ShoppingCartIcon,
+  Add as AddIcon,
+  Delete as DeleteIcon,
 } from '@mui/icons-material';
 import {
   LineChart,
@@ -49,6 +59,7 @@ import {
   Area,
 } from 'recharts';
 import dayjs from 'dayjs';
+import { http } from '@/services/api';
 
 // 统计数据接口
 interface StatData {
@@ -64,9 +75,29 @@ interface ReportData {
   id: number;
   name: string;
   type: string;
-  status: 'completed' | 'processing' | 'pending';
+  typeValue?: string;
+  status: 'completed' | 'processing' | 'pending' | 'failed';
+  statusValue?: number;
   createTime: string;
   downloadCount: number;
+  fileSize?: string;
+  createByName?: string;
+}
+
+// 报表类型选项
+interface ReportTypeOption {
+  value: string;
+  label: string;
+}
+
+// 生成报告表单数据
+interface GenerateReportForm {
+  reportName: string;
+  reportType: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  remark: string;
 }
 
 // 模拟统计数据
@@ -138,13 +169,6 @@ const productCategoryData = [
 const COLORS = ['#1976d2', '#9c27b0', '#2e7d32', '#ed6c02', '#00bcd4'];
 
 // 模拟报表列表数据
-const initialReports: ReportData[] = [
-  { id: 1, name: '2024 年度销售报表', type: '销售报表', status: 'completed', createTime: '2024-01-15', downloadCount: 128 },
-  { id: 2, name: 'Q4 季度财务报表', type: '财务报表', status: 'completed', createTime: '2024-01-10', downloadCount: 85 },
-  { id: 3, name: '用户增长分析报告', type: '用户分析', status: 'processing', createTime: '2024-01-12', downloadCount: 42 },
-  { id: 4, name: '部门绩效评估报告', type: '绩效报表', status: 'completed', createTime: '2024-01-08', downloadCount: 67 },
-  { id: 5, name: '库存管理报表', type: '库存报表', status: 'pending', createTime: '2024-01-14', downloadCount: 0 },
-];
 
 // 统计卡片组件
 const StatCard: React.FC<StatData> = ({ title, value, change, icon, color }) => {
@@ -209,20 +233,98 @@ const StatCard: React.FC<StatData> = ({ title, value, change, icon, color }) => 
 };
 
 // 状态标签组件
-const getStatusChip = (status: string) => {
-  const statusMap: Record<string, { label: string; color: 'success' | 'warning' | 'info' | 'default' }> = {
-    completed: { label: '已完成', color: 'success' },
-    pending: { label: '待生成', color: 'warning' },
-    processing: { label: '生成中', color: 'info' },
+const getStatusChip = (status: number | string) => {
+  const statusMap: Record<number, { label: string; color: 'success' | 'warning' | 'info' | 'error' }> = {
+    0: { label: '待生成', color: 'warning' },
+    1: { label: '生成中', color: 'info' },
+    2: { label: '已完成', color: 'success' },
+    3: { label: '失败', color: 'error' },
   };
-  const { label, color } = statusMap[status] || { label: status, color: 'default' };
+  const statusNum = typeof status === 'string' ? parseInt(status) : status;
+  const { label, color } = statusMap[statusNum] || { label: '未知', color: 'default' as any };
   return <Chip label={label} color={color} size="small" />;
 };
 
 export const Report: React.FC = () => {
   const [reportType, setReportType] = useState<string>('all');
   const [dateRange, setDateRange] = useState<string>('month');
-  const [reports] = useState<ReportData[]>(initialReports);
+  const [reports, setReports] = useState<ReportData[]>([]);
+  const [reportTypes, setReportTypes] = useState<ReportTypeOption[]>([]);
+
+  // 对话框状态
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogLoading, setDialogLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
+
+  // 表单状态
+  const [formData, setFormData] = useState<GenerateReportForm>({
+    reportName: '',
+    reportType: 'sales',
+    description: '',
+    startDate: dayjs().subtract(30, 'day').format('YYYY-MM-DD'),
+    endDate: dayjs().format('YYYY-MM-DD'),
+    remark: '',
+  });
+
+  // 加载报表类型
+  useEffect(() => {
+    loadReportTypes();
+    loadReports();
+  }, [reportType]);
+
+  // 加载报表类型
+  const loadReportTypes = async () => {
+    try {
+      const response = await http.get('/api/report/types');
+      if (response.code === 0) {
+        setReportTypes(response.data || []);
+      }
+    } catch (error) {
+      console.error('加载报表类型失败:', error);
+      // 使用默认类型
+      setReportTypes([
+        { value: 'sales', label: '销售报表' },
+        { value: 'finance', label: '财务报表' },
+        { value: 'user', label: '用户分析' },
+        { value: 'performance', label: '绩效报表' },
+        { value: 'inventory', label: '库存报表' },
+      ]);
+    }
+  };
+
+  // 加载报表列表
+  const loadReports = async () => {
+    try {
+      const response = await http.get('/api/report/page', {
+        params: {
+          current: 1,
+          size: 50,
+          reportType: reportType === 'all' ? '' : reportType,
+        },
+      });
+      if (response.code === 0 && response.data) {
+        setReports(
+          response.data.records.map((item: any) => ({
+            id: item.reportId,
+            name: item.reportName,
+            type: item.reportType,
+            status: item.status === 2 ? 'completed' : item.status === 1 ? 'processing' : item.status === 0 ? 'pending' : 'failed',
+            statusValue: item.status,
+            createTime: item.createTime,
+            downloadCount: item.downloadCount,
+            fileSize: item.fileSizeFormatted,
+            createByName: item.createByName,
+          }))
+        );
+      }
+    } catch (error) {
+      console.error('加载报表列表失败:', error);
+    }
+  };
 
   // 处理报表类型变化
   const handleReportTypeChange = (event: SelectChangeEvent) => {
@@ -236,14 +338,91 @@ export const Report: React.FC = () => {
 
   // 处理刷新
   const handleRefresh = () => {
-    // 这里可以添加实际的刷新逻辑
-    console.log('刷新报表数据');
+    loadReports();
+  };
+
+  // 打开生成报告对话框
+  const handleOpenDialog = () => {
+    setFormData({
+      reportName: '',
+      reportType: 'sales',
+      description: '',
+      startDate: dayjs().subtract(30, 'day').format('YYYY-MM-DD'),
+      endDate: dayjs().format('YYYY-MM-DD'),
+      remark: '',
+    });
+    setDialogOpen(true);
+  };
+
+  // 关闭对话框
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+  };
+
+  // 生成报告
+  const handleGenerate = async () => {
+    if (!formData.reportName) {
+      setSnackbar({ open: true, message: '请输入报表名称', severity: 'error' });
+      return;
+    }
+
+    setDialogLoading(true);
+    try {
+      const response = await http.post('/api/report/generate', {
+        reportName: formData.reportName,
+        reportType: formData.reportType,
+        description: formData.description,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        remark: formData.remark,
+      });
+
+      if (response.code === 0) {
+        setDialogLoading(false);
+        setDialogOpen(false);
+        setSnackbar({ open: true, message: '报表生成任务已提交，请稍后查看', severity: 'success' });
+        loadReports();
+      }
+    } catch (error: any) {
+      setDialogLoading(false);
+      setSnackbar({
+        open: true,
+        message: error.message || '生成报表失败',
+        severity: 'error',
+      });
+    }
   };
 
   // 处理导出
-  const handleExport = (report: ReportData) => {
-    console.log('导出报表:', report.name);
-    // 这里可以添加实际的导出逻辑
+  const handleExport = async (report: ReportData) => {
+    try {
+      window.open(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'}/api/report/download/${report.id}`, '_blank');
+      setSnackbar({ open: true, message: '开始下载报表', severity: 'success' });
+    } catch (error) {
+      setSnackbar({ open: true, message: '下载失败', severity: 'error' });
+    }
+  };
+
+  // 处理删除
+  const handleDelete = async (report: ReportData) => {
+    if (window.confirm(`确定要删除报表 "${report.name}" 吗？`)) {
+      try {
+        await http.delete(`/api/report/${report.id}`);
+        setSnackbar({ open: true, message: '删除成功', severity: 'success' });
+        loadReports();
+      } catch (error: any) {
+        setSnackbar({
+          open: true,
+          message: error.message || '删除失败',
+          severity: 'error',
+        });
+      }
+    }
+  };
+
+  // 关闭 Snackbar
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
   };
 
   // 过滤报表列表
@@ -469,10 +648,13 @@ export const Report: React.FC = () => {
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
               可用报表
             </Typography>
-            <Typography variant="body2" color="text.secondary">
-              共 {filteredReports.length} 条记录
-            </Typography>
+            <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenDialog}>
+              生成报表
+            </Button>
           </Box>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            共 {filteredReports.length} 条记录
+          </Typography>
           <TableContainer>
             <Table>
               <TableHead>
@@ -513,6 +695,13 @@ export const Report: React.FC = () => {
                       >
                         <DownloadIcon fontSize="small" />
                       </IconButton>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => handleDelete(report)}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -521,6 +710,107 @@ export const Report: React.FC = () => {
           </TableContainer>
         </CardContent>
       </Card>
+
+      {/* 生成报表对话框 */}
+      <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>生成报表</DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="报表名称"
+                value={formData.reportName}
+                onChange={(e) => setFormData({ ...formData, reportName: e.target.value })}
+                placeholder="请输入报表名称"
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth required>
+                <InputLabel>报表类型</InputLabel>
+                <Select
+                  value={formData.reportType}
+                  label="报表类型"
+                  onChange={(e) => setFormData({ ...formData, reportType: e.target.value })}
+                >
+                  {reportTypes.map((type) => (
+                    <MenuItem key={type.value} value={type.value}>
+                      {type.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="描述"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="请输入报表描述"
+                multiline
+                rows={2}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="开始日期"
+                type="date"
+                value={formData.startDate}
+                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="结束日期"
+                type="date"
+                value={formData.endDate}
+                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="备注"
+                value={formData.remark}
+                onChange={(e) => setFormData({ ...formData, remark: e.target.value })}
+                placeholder="请输入备注信息"
+                multiline
+                rows={3}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={handleCloseDialog} disabled={dialogLoading}>
+            取消
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleGenerate}
+            disabled={dialogLoading || !formData.reportName}
+          >
+            {dialogLoading ? <CircularProgress size={24} /> : '生成报表'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar 提示 */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
