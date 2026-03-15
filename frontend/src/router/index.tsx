@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBrowserRouter, Navigate, useLocation } from 'react-router-dom';
 import { Login } from '@pages/Login';
+import { Register } from '@pages/Register';
 import { Dashboard } from '@pages/Dashboard';
 import { UserList } from '@pages/User/UserList';
 import { RoleList } from '@pages/System/RoleList';
@@ -29,6 +30,10 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: <Login />,
+  },
+  {
+    path: '/register',
+    element: <Register />,
   },
   {
     path: '/',

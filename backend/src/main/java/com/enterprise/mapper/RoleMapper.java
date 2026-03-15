@@ -27,4 +27,10 @@ public interface RoleMapper extends BaseMapper<Role> {
      */
     @Select("SELECT menu_id FROM sys_role_menu WHERE role_id = #{roleId}")
     List<Long> selectMenuIdsByRoleId(@Param("roleId") Long roleId);
+
+    /**
+     * 根据角色编码查询角色
+     */
+    @Select("SELECT * FROM sys_role WHERE role_code = #{roleCode} AND deleted = 0")
+    Role selectByRoleCode(@Param("roleCode") String roleCode);
 }

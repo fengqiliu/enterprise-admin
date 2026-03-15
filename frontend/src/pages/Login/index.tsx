@@ -58,6 +58,52 @@ export const Login: React.FC = () => {
     password: '',
   });
 
+  // GitHub 登录跳转
+  const handleGitHubLogin = () => {
+    const clientId = 'Ov23liSIPOxq8vLbSvZI'; // GitHub OAuth App Client ID
+    const redirectUri = encodeURIComponent('http://localhost:3000/login');
+    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user:email`;
+    window.location.href = githubAuthUrl;
+  };
+
+  // 处理 GitHub OAuth 回调
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+
+    if (code) {
+      handleGitHubCallback(code);
+      // 清除 URL 中的 code 参数
+      window.history.replaceState({}, document.title, '/login');
+    }
+  }, []);
+
+  const handleGitHubCallback = async (code: string) => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const res = await http.post<LoginResponse>('/auth/github-login', { code });
+      const { token, userInfo } = res;
+
+      setUser({
+        id: String(userInfo.userId),
+        username: userInfo.username,
+        nickname: userInfo.nickname || userInfo.username,
+        avatar: userInfo.avatar,
+        email: userInfo.email,
+        roles: userInfo.roles || [],
+        permissions: userInfo.permissions || [],
+      });
+      setToken(token);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err?.message || 'GitHub 登录失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.username || !formData.password) {
@@ -132,7 +178,7 @@ export const Login: React.FC = () => {
               <LockOutlinedIcon sx={{ color: '#fff', fontSize: 32 }} />
             </Box>
             <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
-              企业后台管理系统
+              AI 平台后台管理系统
             </Typography>
             <Typography variant="body2" color="text.secondary">
               欢迎回来，请登录您的账号
@@ -259,6 +305,7 @@ export const Login: React.FC = () => {
               <GoogleIcon sx={{ color: '#DB4437' }} />
             </IconButton>
             <IconButton
+              onClick={handleGitHubLogin}
               sx={{
                 width: 48,
                 height: 48,
@@ -291,6 +338,7 @@ export const Login: React.FC = () => {
               <Button
                 color="primary"
                 sx={{ textTransform: 'none', fontWeight: 600 }}
+                onClick={() => navigate('/register')}
               >
                 立即注册
               </Button>
