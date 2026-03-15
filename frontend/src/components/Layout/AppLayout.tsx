@@ -157,6 +157,8 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({
             flex: 1,
             p: 3,
             overflow: 'auto',
+            width: '95%',
+            mx: 'auto',
           }}
         >
           {children}

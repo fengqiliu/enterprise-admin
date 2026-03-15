@@ -74,12 +74,12 @@ export const UserList: React.FC = () => {
 
   // 表格列定义
   const columns: GridColDef[] = [
-    { field: 'id', headerName: 'ID', width: 70 },
+    { field: 'id', headerName: 'ID', width: 80 },
     { field: 'username', headerName: '用户名', width: 120 },
     { field: 'nickname', headerName: '昵称', width: 100 },
-    { field: 'email', headerName: '邮箱', width: 180 },
+    { field: 'email', headerName: '邮箱', flex: 1, minWidth: 180 },
     { field: 'phone', headerName: '手机号', width: 130 },
-    { field: 'role', headerName: '角色', width: 120 },
+    { field: 'role', headerName: '角色', flex: 1, minWidth: 120 },
     {
       field: 'status',
       headerName: '状态',
@@ -92,11 +92,11 @@ export const UserList: React.FC = () => {
         />
       ),
     },
-    { field: 'department', headerName: '部门', width: 100 },
+    { field: 'department', headerName: '部门', flex: 1, minWidth: 100 },
     {
       field: 'createTime',
       headerName: '创建时间',
-      width: 150,
+      width: 160,
       valueFormatter: (params) => dayjs(params.value).format('YYYY-MM-DD'),
     },
     {

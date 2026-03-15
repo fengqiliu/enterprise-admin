@@ -74,15 +74,15 @@ export const LoginLog: React.FC = () => {
   // 表格列定义
   const columns: GridColDef[] = [
     { field: 'id', headerName: 'ID', width: 70 },
-    { field: 'username', headerName: '用户名', width: 120 },
-    { field: 'ip', headerName: 'IP 地址', width: 140 },
-    { field: 'location', headerName: '登录地点', width: 150 },
-    { field: 'browser', headerName: '浏览器', width: 140 },
-    { field: 'os', headerName: '操作系统', width: 120 },
+    { field: 'username', headerName: '用户名', flex: 1, minWidth: 100 },
+    { field: 'ip', headerName: 'IP 地址', width: 130 },
+    { field: 'location', headerName: '登录地点', flex: 1, minWidth: 120 },
+    { field: 'browser', headerName: '浏览器', flex: 1, minWidth: 120 },
+    { field: 'os', headerName: '操作系统', flex: 1, minWidth: 100 },
     {
       field: 'status',
       headerName: '状态',
-      width: 100,
+      width: 80,
       renderCell: (params) => (
         <Chip
           label={params.value === 'success' ? '成功' : '失败'}
@@ -94,7 +94,8 @@ export const LoginLog: React.FC = () => {
     {
       field: 'message',
       headerName: '提示信息',
-      width: 150,
+      flex: 1,
+      minWidth: 120,
     },
     {
       field: 'createTime',
@@ -105,7 +106,7 @@ export const LoginLog: React.FC = () => {
     {
       field: 'actions',
       headerName: '操作',
-      width: 100,
+      width: 80,
       renderCell: (params) => (
         <IconButton size="small" color="primary" onClick={() => handleView(params.row)}>
           <VisibilityIcon fontSize="small" />

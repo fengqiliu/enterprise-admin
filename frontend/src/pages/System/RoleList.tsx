@@ -85,10 +85,10 @@ export const RoleList: React.FC = () => {
 
   // 表格列定义
   const columns: GridColDef[] = [
-    { field: 'id', headerName: 'ID', width: 70 },
-    { field: 'roleName', headerName: '角色名称', width: 120 },
-    { field: 'roleCode', headerName: '角色编码', width: 150 },
-    { field: 'description', headerName: '描述', width: 200 },
+    { field: 'id', headerName: 'ID', width: 80 },
+    { field: 'roleName', headerName: '角色名称', flex: 1, minWidth: 120 },
+    { field: 'roleCode', headerName: '角色编码', flex: 1, minWidth: 150 },
+    { field: 'description', headerName: '描述', flex: 1.5, minWidth: 200 },
     {
       field: 'status',
       headerName: '状态',
@@ -104,7 +104,7 @@ export const RoleList: React.FC = () => {
     {
       field: 'permissionCount',
       headerName: '权限数',
-      width: 100,
+      width: 90,
       valueGetter: (params) => params.row.permissions?.length || 0,
     },
     {
@@ -116,7 +116,7 @@ export const RoleList: React.FC = () => {
     {
       field: 'actions',
       headerName: '操作',
-      width: 220,
+      width: 200,
       renderCell: (params) => (
         <Box>
           <IconButton size="small" color="primary" onClick={() => handleView(params.row)}>

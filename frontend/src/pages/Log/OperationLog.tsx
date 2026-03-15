@@ -69,14 +69,14 @@ export const OperationLog: React.FC = () => {
   // 表格列定义
   const columns: GridColDef[] = [
     { field: 'id', headerName: 'ID', width: 70 },
-    { field: 'username', headerName: '操作人', width: 120 },
-    { field: 'operation', headerName: '操作模块', width: 150 },
-    { field: 'method', headerName: '请求方法', width: 180 },
+    { field: 'username', headerName: '操作人', flex: 1, minWidth: 100 },
+    { field: 'operation', headerName: '操作模块', flex: 1, minWidth: 140 },
+    { field: 'method', headerName: '请求方法', flex: 1.5, minWidth: 160 },
     { field: 'ip', headerName: 'IP 地址', width: 140 },
     {
       field: 'time',
       headerName: '执行时长 (ms)',
-      width: 120,
+      width: 110,
       renderCell: (params) => (
         <Chip
           label={`${params.value}ms`}
@@ -88,7 +88,7 @@ export const OperationLog: React.FC = () => {
     {
       field: 'status',
       headerName: '状态',
-      width: 100,
+      width: 80,
       renderCell: (params) => (
         <Chip
           label={params.value === 'success' ? '成功' : '失败'}
@@ -106,7 +106,7 @@ export const OperationLog: React.FC = () => {
     {
       field: 'actions',
       headerName: '操作',
-      width: 100,
+      width: 80,
       renderCell: (params) => (
         <IconButton size="small" color="primary" onClick={() => handleView(params.row)}>
           <VisibilityIcon fontSize="small" />

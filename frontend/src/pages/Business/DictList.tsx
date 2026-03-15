@@ -127,9 +127,9 @@ export const DictList: React.FC = () => {
   // 字典类型表格列
   const typeColumns: GridColDef[] = [
     { field: 'id', headerName: 'ID', width: 80 },
-    { field: 'dictName', headerName: '字典名称', width: 150 },
-    { field: 'dictType', headerName: '字典类型', width: 160 },
-    { field: 'remark', headerName: '备注', width: 200, flex: 1 },
+    { field: 'dictName', headerName: '字典名称', flex: 1, minWidth: 150 },
+    { field: 'dictType', headerName: '字典类型', flex: 1, minWidth: 140 },
+    { field: 'remark', headerName: '备注', flex: 1.5, minWidth: 180 },
     {
       field: 'createTime',
       headerName: '创建时间',
@@ -161,13 +161,13 @@ export const DictList: React.FC = () => {
   // 字典项表格列
   const itemColumns: GridColDef[] = [
     { field: 'id', headerName: 'ID', width: 80 },
-    { field: 'itemLabel', headerName: '字典标签', width: 150 },
-    { field: 'itemValue', headerName: '字典值', width: 150 },
+    { field: 'itemLabel', headerName: '字典标签', flex: 1, minWidth: 150 },
+    { field: 'itemValue', headerName: '字典值', flex: 1, minWidth: 120 },
     { field: 'sortOrder', headerName: '排序', width: 80 },
     {
       field: 'status',
       headerName: '状态',
-      width: 100,
+      width: 80,
       renderCell: (params) => (
         <Chip label={params.value === 1 ? '启用' : '禁用'} color={params.value === 1 ? 'success' : 'default'} size="small" />
       ),
