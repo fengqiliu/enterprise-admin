@@ -29,6 +29,9 @@ npm run lint
 
 # Type check
 npx tsc --noEmit
+
+# Format
+npx prettier --write src/
 ```
 
 ### Backend Commands
@@ -52,13 +55,17 @@ mvn test -Dtest=ClassNameTest
 mvn clean package -DskipTests
 
 # API Documentation: http://localhost:8080/api/doc.html
+# Swagger UI: http://localhost:8080/swagger-ui.html
 ```
 
 ### Database Setup
 
 ```bash
-# Initialize database
+# MySQL (production)
 mysql -u root -p < backend/src/main/resources/sql/init.sql
+
+# SQLite (development - auto-created in backend/data/)
+# No manual setup needed, just run the application
 ```
 
 ### Default Credentials
@@ -86,10 +93,11 @@ frontend/src/
 - Path aliases: `@/*`, `@components/*`, `@stores/*`, etc. (configured in `vite.config.ts` + `tsconfig.json`)
 - API requests use `http` helper from `@services/api.ts` with automatic token injection
 - State managed via Zustand stores with persistence: `useUserStore`, `useThemeStore`, `useSidebarStore`, `useTabsStore`
-- Routing via React Router v6 with `RouterProvider`
+- Routing via React Router v6 with `RouterProvider` and protected routes
 - UI Components: Material-UI v5, MUI X DataGrid, MUI X Date Pickers
 - Forms: React Hook Form + Zod validation
 - Charts: Recharts
+- Data Grid: MUI X DataGrid for table listings with pagination, sorting, filtering
 
 ### Backend Structure
 
@@ -110,12 +118,14 @@ backend/src/main/java/com/enterprise/
 - 统一响应：`Result<T>` and `PageResult<T>` wrappers
 - JWT authentication via `JwtAuthenticationFilter` (stateless session)
 - MyBatis-Plus for ORM with logical deletion support (logic-delete-field: deleted)
-- Redis for caching
+- Redis for caching (optional, can be disabled for SQLite mode)
 - Knife4j for Swagger documentation at `/api/doc.html`
 - BCrypt password encoding
 - Spring Security with method-level security (`@PreAuthorize`)
 - Global exception handling via `GlobalExceptionHandler`
-- Controllers: `AuthController`, `UserController`, `RoleController`, `MenuController`, `DepartmentController`, `DictController`, `OperationLogController`, `LoginLogController`
+- Controllers: `AuthController` (login/logout/refresh/GitHub SSO), `UserController`, `RoleController`, `MenuController`, `DepartmentController`, `DictController`, `OperationLogController`, `LoginLogController`
+- Mapper XML location: `classpath*:/mapper/**/*.xml` (if using XML mappers)
+- SQLite support for development (configured in `application.yml`)
 
 ## Configuration Files
 
@@ -123,15 +133,19 @@ backend/src/main/java/com/enterprise/
 |------|---------|
 | `frontend/vite.config.ts` | Vite config, API proxy to `:8080`, path aliases |
 | `frontend/tsconfig.json` | TypeScript paths matching Vite aliases |
+| `frontend/package.json` | Frontend dependencies and scripts |
 | `backend/pom.xml` | Maven dependencies (Spring Boot 3.2.2, MyBatis-Plus 3.5.5, JWT 0.12.3) |
-| `backend/application.yml` | DB (MySQL), Redis, JWT, MyBatis-Plus config |
+| `backend/application.yml` | DB (MySQL/SQLite), Redis, JWT, MyBatis-Plus, OAuth2 config |
+| `backend/src/main/resources/sql/init.sql` | Database initialization script |
 
 ## Backend API Endpoints
 
 ### Authentication
-- `POST /api/auth/login` - User login
+- `POST /api/auth/login` - User login (username/password)
 - `POST /api/auth/logout` - User logout
 - `POST /api/auth/refresh` - Refresh token
+- `POST /api/auth/register` - User registration
+- `GET /api/auth/oauth2/github` - GitHub OAuth login
 
 ### System Management
 - `GET/POST/PUT/DELETE /api/system/user` - User CRUD
@@ -168,5 +182,36 @@ The system uses the following tables (defined in `backend/src/main/resources/sql
 
 - Node.js >= 18.x
 - JDK >= 17
-- MySQL >= 8.0
-- Redis >= 7.0
+- MySQL >= 8.0 (production)
+- SQLite 3.x (development, optional)
+- Redis >= 7.0 (optional, can be disabled)
+
+## Development Notes
+
+### SQLite Development Mode
+
+The application supports SQLite as a development database. To use SQLite:
+
+1. Ensure `spring.data.redis.enabled: false` in `application.yml`
+2. Ensure datasource is configured for SQLite:
+   ```yaml
+   datasource:
+     driver-class-name: org.sqlite.JDBC
+     url: jdbc:sqlite:./data/enterprise_admin.db
+   ```
+3. Initialize the database:
+   ```bash
+   cd backend/data
+   sqlite3 enterprise_admin.db < ../src/main/resources/sql/init-sqlite.sql
+   ```
+4. Run the application with `mvn spring-boot:run`
+
+**Important:** The application uses conditional bean configuration:
+- `AuthServiceImpl` is used when Redis is enabled (default)
+- `AuthServiceImplNoRedis` is used when Redis is disabled (SQLite mode)
+
+### Known Issues
+
+- **map-underscore-to-camel-case**: Must be set to `true` in MyBatis-Plus configuration for proper column mapping (e.g., `user_id` -> `userId`)
+- **BCrypt password hashes**: Ensure password hashes in the database are generated with BCrypt (10 rounds). The default admin password is `admin123`.
+- **SQLite INSERT syntax**: Use individual INSERT statements instead of multi-row inserts for compatibility

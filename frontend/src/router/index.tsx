@@ -10,6 +10,7 @@ import { DepartmentList } from '@pages/System/DepartmentList';
 import { DictList } from '@pages/Business/DictList';
 import { OperationLog } from '@pages/Log/OperationLog';
 import { LoginLog } from '@pages/Log/LoginLog';
+import { Report } from '@pages/Report';
 import { AppLayout } from '@components/Layout/AppLayout';
 import { useUserStore } from '@stores';
 
@@ -115,7 +116,7 @@ export const router = createBrowserRouter([
     path: '/report',
     element: (
       <ProtectedRoute>
-        <div>报表中心页面（待开发）</div>
+        <Report />
       </ProtectedRoute>
     ),
   },

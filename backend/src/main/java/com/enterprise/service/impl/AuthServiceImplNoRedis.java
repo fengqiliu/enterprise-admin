@@ -15,7 +15,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -27,23 +26,21 @@ import org.springframework.web.client.RestTemplate;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * 认证服务实现类
+ * 认证服务实现类（不使用 Redis，用于 SQLite 开发模式）
  */
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(prefix = "spring.data.redis", name = "enabled", havingValue = "true", matchIfMissing = true)
-public class AuthServiceImpl implements AuthService {
+@ConditionalOnProperty(prefix = "spring.data.redis", name = "enabled", havingValue = "false")
+public class AuthServiceImplNoRedis implements AuthService {
 
     private final UserMapper userMapper;
     private final RoleMapper roleMapper;
     private final MenuMapper menuMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtConfig jwtConfig;
-    private final RedisTemplate<String, String> redisTemplate;
     private final RestTemplate restTemplate;
 
     @Override
@@ -86,16 +83,13 @@ public class AuthServiceImpl implements AuthService {
                 permissions
         );
 
-        // 将 Token 存入 Redis
-        String redisKey = "token:" + user.getUserId();
-        redisTemplate.opsForValue().set(redisKey, token, jwtConfig.getExpiration(), TimeUnit.MILLISECONDS);
-
+        // 不使用 Redis，直接返回
         return new LoginResponse(token, "Bearer", jwtConfig.getExpiration(), userInfo);
     }
 
     @Override
     public void logout() {
-        // 实际项目中从 SecurityContext 获取 userId 并删除 Redis key
+        // 不使用 Redis，无需操作
     }
 
     @Override
@@ -124,9 +118,7 @@ public class AuthServiceImpl implements AuthService {
                 roleNames, permissions
         );
 
-        String redisKey = "token:" + user.getUserId();
-        redisTemplate.opsForValue().set(redisKey, newToken, jwtConfig.getExpiration(), TimeUnit.MILLISECONDS);
-
+        // 不使用 Redis
         return new LoginResponse(newToken, "Bearer", jwtConfig.getExpiration(), userInfo);
     }
 
@@ -182,47 +174,8 @@ public class AuthServiceImpl implements AuthService {
                 permissions
         );
 
-        // 将 Token 存入 Redis
-        String redisKey = "token:" + user.getUserId();
-        redisTemplate.opsForValue().set(redisKey, token, jwtConfig.getExpiration(), TimeUnit.MILLISECONDS);
-
+        // 不使用 Redis
         return new LoginResponse(token, "Bearer", jwtConfig.getExpiration(), userInfo);
-    }
-
-    /**
-     * 生成 JWT Token（将权限列表存入 claims）
-     */
-    private String generateToken(User user, List<String> permissions) {
-        Date now = new Date();
-        Date expiration = new Date(now.getTime() + jwtConfig.getExpiration());
-
-        SecretKey key = Keys.hmacShaKeyFor(jwtConfig.getSecret().getBytes(StandardCharsets.UTF_8));
-
-        // 将权限列表用逗号连接存入 JWT
-        String permissionsStr = String.join(",", permissions);
-
-        return Jwts.builder()
-                .subject(String.valueOf(user.getUserId()))
-                .claim("username", user.getUsername())
-                .claim("permissions", permissionsStr)
-                .issuedAt(now)
-                .expiration(expiration)
-                .signWith(key)
-                .compact();
-    }
-
-    private Long validateToken(String token) {
-        try {
-            SecretKey key = Keys.hmacShaKeyFor(jwtConfig.getSecret().getBytes(StandardCharsets.UTF_8));
-            var claims = Jwts.parser()
-                    .verifyWith(key)
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
-            return Long.parseLong(claims.getSubject());
-        } catch (Exception e) {
-            return null;
-        }
     }
 
     @Override
@@ -290,13 +243,46 @@ public class AuthServiceImpl implements AuthService {
                     permissions
             );
 
-            // 6. 将 Token 存入 Redis
-            String redisKey = "token:" + user.getUserId();
-            redisTemplate.opsForValue().set(redisKey, token, jwtConfig.getExpiration(), TimeUnit.MILLISECONDS);
-
+            // 6. 不使用 Redis
             return new LoginResponse(token, "Bearer", jwtConfig.getExpiration(), loginUserInfo);
         } catch (Exception e) {
             throw new RuntimeException("GitHub 登录失败：" + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 生成 JWT Token（将权限列表存入 claims）
+     */
+    private String generateToken(User user, List<String> permissions) {
+        Date now = new Date();
+        Date expiration = new Date(now.getTime() + jwtConfig.getExpiration());
+
+        SecretKey key = Keys.hmacShaKeyFor(jwtConfig.getSecret().getBytes(StandardCharsets.UTF_8));
+
+        // 将权限列表用逗号连接存入 JWT
+        String permissionsStr = String.join(",", permissions);
+
+        return Jwts.builder()
+                .subject(String.valueOf(user.getUserId()))
+                .claim("username", user.getUsername())
+                .claim("permissions", permissionsStr)
+                .issuedAt(now)
+                .expiration(expiration)
+                .signWith(key)
+                .compact();
+    }
+
+    private Long validateToken(String token) {
+        try {
+            SecretKey key = Keys.hmacShaKeyFor(jwtConfig.getSecret().getBytes(StandardCharsets.UTF_8));
+            var claims = Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            return Long.parseLong(claims.getSubject());
+        } catch (Exception e) {
+            return null;
         }
     }
 

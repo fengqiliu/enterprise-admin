@@ -26,27 +26,17 @@ spring:
             user-info-uri: https://api.github.com/user
             user-name-attribute: login
   
-  # 数据源配置
+  # 数据源配置 (SQLite for development)
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/enterprise_admin?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-    username: root
-    password: root
-  
-  # Redis 配置
+    driver-class-name: org.sqlite.JDBC
+    url: jdbc:sqlite:./data/enterprise_admin.db
+    username:
+    password:
+
+  # Redis 配置 (disabled for SQLite mode)
   data:
     redis:
-      host: localhost
-      port: 6379
-      password: 
-      database: 0
-      timeout: 10000ms
-      lettuce:
-        pool:
-          max-active: 8
-          max-idle: 8
-          min-idle: 0
-          max-wait: -1ms
+      enabled: false
   
   # Jackson 配置
   jackson:
@@ -65,6 +55,7 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: assign_id
+      # SQLite 不支持逻辑删除字段
       logic-delete-field: deleted
       logic-delete-value: 1
       logic-not-delete-value: 0

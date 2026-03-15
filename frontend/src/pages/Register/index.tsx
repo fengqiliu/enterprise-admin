@@ -11,13 +11,11 @@ import {
   Link,
   Alert,
   useTheme,
-  alpha,
 } from '@mui/material';
 import {
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
   PersonAddOutlined as PersonAddIcon,
-  CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
 import { useUserStore } from '@stores';
 import { useNavigate } from 'react-router-dom';
