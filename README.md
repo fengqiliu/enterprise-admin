@@ -9,7 +9,7 @@
 
 ## 📋 项目简介
 
-本项目是一套全栈企业级后台管理系统，前端采用 React + Material-UI 构建美观的界面，后端采用 Spring Boot + MyBatis-Plus 提供稳定的 API 服务。系统包含用户管理、角色管理、菜单管理、部门管理、日志管理等常用功能模块。
+本项目是一套全栈企业级后台管理系统，前端采用 React + Material-UI 构建美观的界面，后端采用 Spring Boot + MyBatis-Plus 提供稳定的 API 服务。系统包含用户管理、角色管理、菜单管理、部门管理、数据字典、系统配置、日志管理等常用功能模块，支持 GitHub SSO 单点登录。
 
 ## 🎨 技术栈
 
@@ -22,6 +22,7 @@
 | Material-UI | 5.x | UI 组件库 |
 | React Router | 6.x | 路由管理 |
 | Zustand | 4.x | 状态管理 |
+| TanStack Query | 5.x | 服务端状态管理 |
 | Axios | 1.x | HTTP 请求 |
 | Recharts | 2.x | 图表库 |
 | TypeScript | 5.x | 类型支持 |
@@ -35,8 +36,9 @@
 | Spring Boot | 3.2.x | 后端框架 |
 | Spring Security | 6.x | 安全认证 |
 | MyBatis-Plus | 3.5.x | ORM 框架 |
-| MySQL | 8.x | 主数据库 |
-| Redis | 7.x | 缓存 |
+| MySQL | 8.x | 主数据库（生产环境） |
+| SQLite | 3.x | 嵌入式数据库（开发环境） |
+| Redis | 7.x | 缓存（可选） |
 | JWT | 0.12.x | Token 认证 |
 | Knife4j | 4.x | API 文档 |
 | Lombok | - | 代码简化 |
@@ -54,8 +56,11 @@ enterprise-admin-system/
 │   │   │       └── AppLayout.tsx    # 主布局
 │   │   ├── pages/             # 页面组件
 │   │   │   ├── Dashboard/     # 仪表盘
-│   │   │   ├── User/          # 用户管理
-│   │   │   └── Login/         # 登录页
+│   │   │   ├── Login/         # 登录页
+│   │   │   ├── System/        # 系统管理（用户、角色、菜单、部门）
+│   │   │   ├── Business/      # 业务管理（字典、配置）
+│   │   │   ├── Log/           # 日志中心
+│   │   │   └── Report/        # 报表中心
 │   │   ├── stores/            # Zustand 状态管理
 │   │   ├── services/          # API 服务
 │   │   ├── router/            # 路由配置
@@ -119,14 +124,17 @@ enterprise-admin-system/
 
 - Node.js >= 18.x
 - JDK >= 17
-- MySQL >= 8.0
-- Redis >= 7.0
+- MySQL >= 8.0（生产环境）
+- SQLite 3.x（开发环境，可选）
+- Redis >= 7.0（可选，用于缓存）
 
 ### 1. 数据库初始化
 
 ```bash
-# 执行 SQL 脚本
+# MySQL（生产环境）
 mysql -u root -p < backend/src/main/resources/sql/init.sql
+
+# SQLite（开发环境）- 自动创建，无需手动初始化
 ```
 
 ### 2. 后端启动
@@ -134,13 +142,11 @@ mysql -u root -p < backend/src/main/resources/sql/init.sql
 ```bash
 cd backend
 
-# 修改数据库配置（src/main/resources/application.yml）
-# 修改 Redis 配置
-
-# 启动
+# 开发模式（使用 SQLite，无需 Redis）
 mvn spring-boot:run
 
-# 访问 API 文档：http://localhost:8080/api/doc.html
+# 生产模式：修改数据库配置（src/main/resources/application.yml）
+# 访问 API 文档：http://localhost:8081/api/doc.html
 ```
 
 ### 3. 前端启动
@@ -211,7 +217,7 @@ jwt:
 server: {
   proxy: {
     '/api': {
-      target: 'http://localhost:8080',
+      target: 'http://localhost:8081',
       changeOrigin: true,
     },
   },
@@ -227,6 +233,8 @@ server: {
 | /auth/login | POST | 用户登录 |
 | /auth/logout | POST | 用户登出 |
 | /auth/refresh | POST | 刷新 Token |
+| /auth/register | POST | 用户注册 |
+| /auth/oauth2/github | GET | GitHub OAuth 登录 |
 
 ### 用户接口
 
