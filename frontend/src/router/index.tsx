@@ -11,6 +11,7 @@ import { DictList } from '@pages/Business/DictList';
 import { OperationLog } from '@pages/Log/OperationLog';
 import { LoginLog } from '@pages/Log/LoginLog';
 import { Report } from '@pages/Report';
+import { ConfigList } from '@pages/Business/ConfigList';
 import { AppLayout } from '@components/Layout/AppLayout';
 import { useUserStore } from '@stores';
 
@@ -92,7 +93,7 @@ export const router = createBrowserRouter([
     path: '/business/config',
     element: (
       <ProtectedRoute>
-        <div>参数配置页面（待开发）</div>
+        <ConfigList />
       </ProtectedRoute>
     ),
   },

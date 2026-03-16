@@ -194,6 +194,10 @@ INSERT INTO sys_menu (menu_id, parent_id, menu_name, menu_type, path, component,
 INSERT INTO sys_menu (menu_id, parent_id, menu_name, menu_type, path, component, permission, icon, sort_order, status, create_time, update_time, deleted) VALUES (10, 0, '业务管理', 1, '/business', NULL, NULL, 'Assignment', 2, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0);
 INSERT INTO sys_menu (menu_id, parent_id, menu_name, menu_type, path, component, permission, icon, sort_order, status, create_time, update_time, deleted) VALUES (11, 10, '数据字典', 2, '/business/dict', 'business/DictList', 'business:dict:list', 'Description', 1, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0);
 INSERT INTO sys_menu (menu_id, parent_id, menu_name, menu_type, path, component, permission, icon, sort_order, status, create_time, update_time, deleted) VALUES (12, 10, '参数配置', 2, '/business/config', 'business/ConfigList', 'business:config:list', 'Storage', 2, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0);
+INSERT INTO sys_menu (menu_id, parent_id, menu_name, menu_type, path, component, permission, icon, sort_order, status, create_time, update_time, deleted) VALUES (17, 12, '参数查询', 3, NULL, NULL, 'business:config:query', NULL, 1, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0);
+INSERT INTO sys_menu (menu_id, parent_id, menu_name, menu_type, path, component, permission, icon, sort_order, status, create_time, update_time, deleted) VALUES (18, 12, '参数新增', 3, NULL, NULL, 'business:config:add', NULL, 2, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0);
+INSERT INTO sys_menu (menu_id, parent_id, menu_name, menu_type, path, component, permission, icon, sort_order, status, create_time, update_time, deleted) VALUES (19, 12, '参数修改', 3, NULL, NULL, 'business:config:edit', NULL, 3, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0);
+INSERT INTO sys_menu (menu_id, parent_id, menu_name, menu_type, path, component, permission, icon, sort_order, status, create_time, update_time, deleted) VALUES (20, 12, '参数删除', 3, NULL, NULL, 'business:config:delete', NULL, 4, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0);
 INSERT INTO sys_menu (menu_id, parent_id, menu_name, menu_type, path, component, permission, icon, sort_order, status, create_time, update_time, deleted) VALUES (13, 0, '日志中心', 1, '/log', NULL, NULL, 'History', 3, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0);
 INSERT INTO sys_menu (menu_id, parent_id, menu_name, menu_type, path, component, permission, icon, sort_order, status, create_time, update_time, deleted) VALUES (14, 13, '操作日志', 2, '/log/operation', 'log/OperationLog', 'log:operation:list', 'Assignment', 1, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0);
 INSERT INTO sys_menu (menu_id, parent_id, menu_name, menu_type, path, component, permission, icon, sort_order, status, create_time, update_time, deleted) VALUES (15, 13, '登录日志', 2, '/log/login', 'log/LoginLog', 'log:login:list', 'Security', 2, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0);
@@ -236,3 +240,31 @@ CREATE TABLE sys_report (
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     remark TEXT DEFAULT NULL
 );
+
+-- ============================================
+-- 系统参数配置表
+-- ============================================
+DROP TABLE IF EXISTS sys_config;
+
+CREATE TABLE sys_config (
+    config_id INTEGER PRIMARY KEY,
+    config_name VARCHAR(100) NOT NULL,
+    config_key VARCHAR(50) NOT NULL UNIQUE,
+    config_value VARCHAR(500),
+    config_type VARCHAR(50) DEFAULT 'sys',
+    description VARCHAR(255),
+    is_editable INTEGER DEFAULT 1,
+    status INTEGER DEFAULT 1,
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    deleted INTEGER DEFAULT 0
+);
+
+-- 初始化参数配置数据
+INSERT INTO sys_config (config_id, config_name, config_key, config_value, config_type, description, is_editable, status) VALUES
+(1, '用户注册开关', 'sys.user.register', 'true', 'sys', '是否允许用户自主注册', 1, 1),
+(2, '登录验证码开关', 'sys.login.captcha', 'true', 'sys', '登录时是否显示验证码', 1, 1),
+(3, '最大上传文件大小 (MB)', 'sys.upload.maxSize', '10', 'sys', '允许上传的最大文件大小', 1, 1),
+(4, '会话超时时间 (分钟)', 'sys.session.timeout', '30', 'sys', '用户会话超时时间', 1, 1),
+(5, '网站标题', 'sys.website.title', '企业后台管理系统', 'sys', '网站主标题', 1, 1),
+(6, '版权信息', 'sys.copyright', '© 2026 Enterprise Inc.', 'sys', '页面底部版权信息', 1, 1);
