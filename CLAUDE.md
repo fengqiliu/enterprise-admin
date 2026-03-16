@@ -18,7 +18,7 @@ cd frontend
 # Install dependencies
 npm install
 
-# Start dev server (port 3000, with API proxy to localhost:8080)
+# Start dev server (port 3000, with API proxy to localhost:8081)
 npm run dev
 
 # Build production
@@ -54,8 +54,8 @@ mvn test -Dtest=ClassNameTest
 # Skip tests during build
 mvn clean package -DskipTests
 
-# API Documentation: http://localhost:8080/api/doc.html
-# Swagger UI: http://localhost:8080/swagger-ui.html
+# API Documentation: http://localhost:8081/api/doc.html
+# Swagger UI: http://localhost:8081/swagger-ui.html
 ```
 
 ### Database Setup
@@ -81,7 +81,7 @@ mysql -u root -p < backend/src/main/resources/sql/init.sql
 ```
 frontend/src/
 ├── components/         # Shared components (Layout: AppHeader, AppSidebar, AppLayout)
-├── pages/              # Page components (Dashboard, User, Login)
+├── pages/              # Page components (Dashboard, User, System, Business, Log, Report)
 ├── router/             # React Router v6 configuration
 ├── stores/             # Zustand state management (theme, user, sidebar, tabs)
 ├── services/           # Axios API layer with interceptors (http helper, token injection)
@@ -98,6 +98,7 @@ frontend/src/
 - Forms: React Hook Form + Zod validation
 - Charts: Recharts
 - Data Grid: MUI X DataGrid for table listings with pagination, sorting, filtering
+- Server state: TanStack Query for data fetching and caching
 
 ### Backend Structure
 
@@ -106,9 +107,9 @@ backend/src/main/java/com/enterprise/
 ├── AdminApplication.java    # Spring Boot entry point
 ├── common/                  # Common utilities (Result, PageResult)
 ├── config/                  # Configuration (Security, Cors, Jwt, Redis, MyBatis-Plus, Swagger)
-├── controller/              # REST controllers (Auth, User)
-├── dto/                     # Data transfer objects (LoginRequest, LoginResponse, UserDTO)
-├── entity/                  # JPA entities (User) with MyBatis-Plus annotations
+├── controller/              # REST controllers (Auth, User, Role, Menu, Department, Dict, Config, Report, Log)
+├── dto/                     # Data transfer objects (LoginRequest, LoginResponse, UserDTO, ConfigDTO)
+├── entity/                  # JPA entities (User, Config) with MyBatis-Plus annotations
 ├── handler/                 # Global exception handler
 ├── mapper/                  # MyBatis-Plus mappers
 └── service/                 # Service layer + implementations
@@ -123,7 +124,7 @@ backend/src/main/java/com/enterprise/
 - BCrypt password encoding
 - Spring Security with method-level security (`@PreAuthorize`)
 - Global exception handling via `GlobalExceptionHandler`
-- Controllers: `AuthController` (login/logout/refresh/GitHub SSO), `UserController`, `RoleController`, `MenuController`, `DepartmentController`, `DictController`, `OperationLogController`, `LoginLogController`
+- Controllers: `AuthController`, `UserController`, `RoleController`, `MenuController`, `DepartmentController`, `DictController`, `ConfigController`, `ReportController`, `OperationLogController`, `LoginLogController`
 - Mapper XML location: `classpath*:/mapper/**/*.xml` (if using XML mappers)
 - SQLite support for development (configured in `application.yml`)
 
@@ -131,7 +132,7 @@ backend/src/main/java/com/enterprise/
 
 | File | Purpose |
 |------|---------|
-| `frontend/vite.config.ts` | Vite config, API proxy to `:8080`, path aliases |
+| `frontend/vite.config.ts` | Vite config, API proxy to `:8081`, path aliases |
 | `frontend/tsconfig.json` | TypeScript paths matching Vite aliases |
 | `frontend/package.json` | Frontend dependencies and scripts |
 | `backend/pom.xml` | Maven dependencies (Spring Boot 3.2.2, MyBatis-Plus 3.5.5, JWT 0.12.3) |
@@ -157,6 +158,9 @@ backend/src/main/java/com/enterprise/
 - `GET/POST/PUT/DELETE /api/business/dict` - Data dictionary CRUD
 - `GET/POST/PUT/DELETE /api/business/config` - System config CRUD
 
+### Reports
+- `GET /api/report/*` - Report generation and statistics
+
 ### Logs
 - `GET /api/log/operation` - Operation logs
 - `GET /api/log/login` - Login logs
@@ -177,6 +181,7 @@ The system uses the following tables (defined in `backend/src/main/resources/sql
 | `sys_login_log` | Login audit logs |
 | `sys_dict` | Data dictionary definitions |
 | `sys_dict_item` | Dictionary data items |
+| `sys_config` | System configuration key-value pairs |
 
 ## Environment Requirements
 
@@ -215,3 +220,9 @@ The application supports SQLite as a development database. To use SQLite:
 - **map-underscore-to-camel-case**: Must be set to `true` in MyBatis-Plus configuration for proper column mapping (e.g., `user_id` -> `userId`)
 - **BCrypt password hashes**: Ensure password hashes in the database are generated with BCrypt (10 rounds). The default admin password is `admin123`.
 - **SQLite INSERT syntax**: Use individual INSERT statements instead of multi-row inserts for compatibility
+
+### Feature Documentation
+
+Design specs and implementation plans are stored in `docs/superpowers/`:
+- `specs/` - Feature design specifications
+- `plans/` - Implementation plans
