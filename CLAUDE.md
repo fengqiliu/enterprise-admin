@@ -24,6 +24,9 @@ npm run dev
 # Build production
 npm run build
 
+# Preview production build
+npm run preview
+
 # Lint
 npm run lint
 
@@ -82,6 +85,7 @@ mysql -u root -p < backend/src/main/resources/sql/init.sql
 frontend/src/
 ├── components/         # Shared components (Layout: AppHeader, AppSidebar, AppLayout)
 ├── pages/              # Page components (Dashboard, User, System, Business, Log, Report)
+├── hooks/              # Custom React hooks
 ├── router/             # React Router v6 configuration
 ├── stores/             # Zustand state management (theme, user, sidebar, tabs)
 ├── services/           # Axios API layer with interceptors (http helper, token injection)
