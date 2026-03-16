@@ -209,11 +209,25 @@ INSERT INTO `sys_menu` (`menu_id`, `parent_id`, `menu_name`, `menu_type`, `path`
 (9, 1, '部门管理', 2, '/system/department', 'system/DepartmentList', 'system:dept:list', 'FolderShared', 4, 1),
 (10, 0, '业务管理', 1, '/business', NULL, NULL, NULL, 'Assignment', 2, 1),
 (11, 10, '数据字典', 2, '/business/dict', 'business/DictList', 'business:dict:list', 'Description', 1, 1),
+(21, 11, '字典查询', 3, NULL, NULL, 'business:dict:query', NULL, 1, 1),
+(22, 11, '字典新增', 3, NULL, NULL, 'business:dict:add', NULL, 2, 1),
+(23, 11, '字典修改', 3, NULL, NULL, 'business:dict:edit', NULL, 3, 1),
+(24, 11, '字典删除', 3, NULL, NULL, 'business:dict:delete', NULL, 4, 1),
 (12, 10, '参数配置', 2, '/business/config', 'business/ConfigList', 'business:config:list', 'Storage', 2, 1),
+(17, 12, '参数查询', 3, NULL, NULL, 'business:config:query', NULL, 1, 1),
+(18, 12, '参数新增', 3, NULL, NULL, 'business:config:add', NULL, 2, 1),
+(19, 12, '参数修改', 3, NULL, NULL, 'business:config:edit', NULL, 3, 1),
+(20, 12, '参数删除', 3, NULL, NULL, 'business:config:delete', NULL, 4, 1),
 (13, 0, '日志中心', 1, '/log', NULL, NULL, NULL, 'History', 3, 1),
 (14, 13, '操作日志', 2, '/log/operation', 'log/OperationLog', 'log:operation:list', 'Assignment', 1, 1),
 (15, 13, '登录日志', 2, '/log/login', 'log/LoginLog', 'log:login:list', 'Security', 2, 1),
-(16, 0, '仪表盘', 2, '/dashboard', 'Dashboard', NULL, 'Dashboard', 0, 1);
+(16, 0, '仪表盘', 2, '/dashboard', 'Dashboard', NULL, 'Dashboard', 0, 1),
+(25, 0, '报表中心', 1, '/report', NULL, NULL, NULL, 'Assessment', 4, 1),
+(26, 25, '报表管理', 2, '/report', 'Report', 'report:list', 'Assessment', 1, 1),
+(27, 26, '报表查询', 3, NULL, NULL, 'report:query', NULL, 1, 1),
+(28, 26, '报表生成', 3, NULL, NULL, 'report:generate', NULL, 2, 1),
+(29, 26, '报表下载', 3, NULL, NULL, 'report:download', NULL, 3, 1),
+(30, 26, '报表删除', 3, NULL, NULL, 'report:delete', NULL, 4, 1);
 
 -- 初始化角色菜单关联（超级管理员拥有所有菜单权限）
 INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) 
@@ -255,3 +269,32 @@ CREATE TABLE `sys_report` (
     `remark` TEXT DEFAULT NULL COMMENT '备注',
     PRIMARY KEY (`report_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='报表表';
+
+-- ============================================
+-- 系统参数配置表
+-- ============================================
+DROP TABLE IF EXISTS `sys_config`;
+CREATE TABLE `sys_config` (
+    `config_id` BIGINT NOT NULL COMMENT '参数 ID',
+    `config_name` VARCHAR(100) NOT NULL COMMENT '参数名称',
+    `config_key` VARCHAR(50) NOT NULL COMMENT '参数键',
+    `config_value` VARCHAR(500) DEFAULT NULL COMMENT '参数值',
+    `config_type` VARCHAR(50) DEFAULT 'sys' COMMENT '分组类型',
+    `description` VARCHAR(255) DEFAULT NULL COMMENT '描述',
+    `is_editable` TINYINT DEFAULT 1 COMMENT '是否可编辑 0-否 1-是',
+    `status` TINYINT DEFAULT 1 COMMENT '状态 0-禁用 1-启用',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `deleted` TINYINT DEFAULT 0 COMMENT '逻辑删除 0-未删除 1-已删除',
+    PRIMARY KEY (`config_id`),
+    UNIQUE KEY `uk_config_key` (`config_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统参数配置表';
+
+-- 初始化系统参数配置
+INSERT INTO `sys_config` (`config_id`, `config_name`, `config_key`, `config_value`, `config_type`, `description`, `is_editable`, `status`) VALUES
+(1, '用户注册开关', 'sys.user.register', 'true', 'sys', '是否允许用户自主注册', 1, 1),
+(2, '登录验证码开关', 'sys.login.captcha', 'true', 'sys', '登录时是否显示验证码', 1, 1),
+(3, '最大上传文件大小 (MB)', 'sys.upload.maxSize', '10', 'sys', '允许上传的最大文件大小', 1, 1),
+(4, '会话超时时间 (分钟)', 'sys.session.timeout', '30', 'sys', '用户会话超时时间', 1, 1),
+(5, '网站标题', 'sys.website.title', '企业后台管理系统', 'sys', '网站主标题', 1, 1),
+(6, '版权信息', 'sys.copyright', '© 2026 Enterprise Inc.', 'sys', '页面底部版权信息', 1, 1);

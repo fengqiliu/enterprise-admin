@@ -279,8 +279,8 @@ export const Report: React.FC = () => {
   // 加载报表类型
   const loadReportTypes = async () => {
     try {
-      const response = await http.get('/api/report/types');
-      if (response.code === 0) {
+      const response = await http.get('/report/types');
+      if (response.code === 200) {
         setReportTypes(response.data || []);
       }
     } catch (error) {
@@ -299,14 +299,14 @@ export const Report: React.FC = () => {
   // 加载报表列表
   const loadReports = async () => {
     try {
-      const response = await http.get('/api/report/page', {
+      const response = await http.get('/report/page', {
         params: {
           current: 1,
           size: 50,
           reportType: reportType === 'all' ? '' : reportType,
         },
       });
-      if (response.code === 0 && response.data) {
+      if (response.code === 200 && response.data) {
         setReports(
           response.data.records.map((item: any) => ({
             id: item.reportId,
@@ -368,7 +368,7 @@ export const Report: React.FC = () => {
 
     setDialogLoading(true);
     try {
-      const response = await http.post('/api/report/generate', {
+      const response = await http.post('/report/generate', {
         reportName: formData.reportName,
         reportType: formData.reportType,
         description: formData.description,
@@ -377,7 +377,7 @@ export const Report: React.FC = () => {
         remark: formData.remark,
       });
 
-      if (response.code === 0) {
+      if (response.code === 200) {
         setDialogLoading(false);
         setDialogOpen(false);
         setSnackbar({ open: true, message: '报表生成任务已提交，请稍后查看', severity: 'success' });
@@ -396,7 +396,7 @@ export const Report: React.FC = () => {
   // 处理导出
   const handleExport = async (report: ReportData) => {
     try {
-      window.open(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'}/api/report/download/${report.id}`, '_blank');
+      window.open(`/api/report/download/${report.id}`, '_blank');
       setSnackbar({ open: true, message: '开始下载报表', severity: 'success' });
     } catch (error) {
       setSnackbar({ open: true, message: '下载失败', severity: 'error' });
@@ -407,7 +407,7 @@ export const Report: React.FC = () => {
   const handleDelete = async (report: ReportData) => {
     if (window.confirm(`确定要删除报表 "${report.name}" 吗？`)) {
       try {
-        await http.delete(`/api/report/${report.id}`);
+        await http.delete(`/report/${report.id}`);
         setSnackbar({ open: true, message: '删除成功', severity: 'success' });
         loadReports();
       } catch (error: any) {
