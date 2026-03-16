@@ -59,7 +59,7 @@ public class ReportController {
     @Operation(summary = "生成报表")
     public Result<ReportResponse> generate(@Valid @RequestBody ReportDTO reportDTO) {
         ReportResponse response = reportService.generate(reportDTO);
-        return Result.success(response, "报表生成任务已提交");
+        return Result.success("报表生成任务已提交", response);
     }
 
     /**
@@ -85,7 +85,7 @@ public class ReportController {
     @Operation(summary = "删除报表")
     public Result<Void> delete(@PathVariable Long id) {
         reportService.delete(id);
-        return Result.success("删除成功");
+        return Result.success();
     }
 
     /**
