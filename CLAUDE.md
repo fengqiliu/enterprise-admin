@@ -113,7 +113,7 @@ backend/src/main/java/com/enterprise/
 ├── config/                  # Configuration (Security, Cors, Jwt, Redis, MyBatis-Plus, Swagger)
 ├── controller/              # REST controllers (Auth, User, Role, Menu, Department, Dict, Config, Report, Log)
 ├── dto/                     # Data transfer objects (LoginRequest, LoginResponse, UserDTO, ConfigDTO)
-├── entity/                  # JPA entities (User, Config) with MyBatis-Plus annotations
+├── entity/                  # MyBatis-Plus entities (User, Config) with @TableName annotations
 ├── handler/                 # Global exception handler
 ├── mapper/                  # MyBatis-Plus mappers
 └── service/                 # Service layer + implementations
